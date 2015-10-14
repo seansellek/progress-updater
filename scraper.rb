@@ -32,6 +32,7 @@ module ProgressScraper
       @week_ids.each_with_index do |week_id, week|
         analyze_week(week_id, week)
       end
+      return self
     end
 
     def analyze_week(week_id, week)

@@ -5,11 +5,11 @@ require 'google/api_client/auth/storage'
 require 'google/api_client/auth/storages/file_store'
 require 'fileutils'
 
-APPLICATION_NAME = 'Drive API Ruby Quickstart'
+APPLICATION_NAME = 'Google Calendar API Ruby Quickstart'
 CLIENT_SECRETS_PATH = 'client_secret.json'
 CREDENTIALS_PATH = File.join(Dir.home, '.credentials',
-                             "drive-ruby-quickstart.json")
-SCOPE = 'https://www.googleapis.com/auth/drive.metadata.readonly'
+                             "calendar-ruby-quickstart.json")
+SCOPE = 'https://www.googleapis.com/auth/calendar.readonly'
 
 ##
 # Ensure valid credentials, either by restoring from the saved credentials
@@ -40,14 +40,21 @@ end
 # Initialize the API
 client = Google::APIClient.new(:application_name => APPLICATION_NAME)
 client.authorization = authorize
-drive_api = client.discovered_api('drive', 'v2')
+calendar_api = client.discovered_api('calendar', 'v3')
 
-# List the 10 most recently modified files.
+# Fetch the next 10 events for the user
 results = client.execute!(
-  :api_method => drive_api.files.list,
-  :parameters => { :maxResults => 10 })
-puts "Files:"
-puts "No files found" if results.data.items.empty?
-results.data.items.each do |file|
-  puts "#{file.title} (#{file.id})"
+  :api_method => calendar_api.events.list,
+  :parameters => {
+    :calendarId => 'primary',
+    :maxResults => 10,
+    :singleEvents => true,
+    :orderBy => 'startTime',
+    :timeMin => Time.now.iso8601 })
+
+puts "Upcoming events:"
+puts "No upcoming events found" if results.data.items.empty?
+results.data.items.each do |event|
+  start = event.start.date || event.start.date_time
+  puts "- #{event.summary} (#{start})"
 end
