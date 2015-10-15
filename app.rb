@@ -12,12 +12,13 @@ require './gdrive.rb'
 require './spreadsheet_importer.rb'
 
 
-# scraper = ProgressScraper::Scraper.new(14)
-# results = scraper.analyze.results
-# binding.pry
+scraper = ProgressScraper::Scraper.new(14)
+results = scraper.analyze.results
+
 drive = ProgressScraper::GDrive.new
-spreadsheet = drive.spreadsheet("1XepDFVyPDgw_O4gZ1Qzi6ODiBVP_8etmM5gg4PxQkS8")
-importer = ProgressScraper::SpreadsheetImporter.new(spreadsheet, {})
-p importer.get_students
-# binding.pry
-# updater = ProgressScraper::GDriveUpdater.new
+puts "Enter Spreadsheet ID: "
+spreadsheet_id = gets.chomp
+spreadsheet = drive.spreadsheet(spreadsheet_id)
+
+importer = ProgressScraper::SpreadsheetImporter.new(spreadsheet, results)
+importer.run

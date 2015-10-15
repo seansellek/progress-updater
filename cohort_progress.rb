@@ -1,7 +1,12 @@
 module ProgressScraper
   class CohortProgress
+    attr_accessor :progress
     def initialize progress
       @progress = progress
+    end
+
+    def [](key)
+      @progress[key]
     end
 
     def weeks
