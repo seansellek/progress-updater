@@ -1,0 +1,6 @@
+source 'https://rubygems.org'
+gem 'google-api-client', '0.9.pre3', require: 'google/apis/drive_v2'
+gem 'google_drive'
+gem 'poltergeist'
+gem 'capybara'
+gem 'pry-byebug'
