@@ -45,7 +45,7 @@ module ProgressScraper
       updated = @worksheet.instance_variable_get(:@modified).length
       total = @weeks.length * @students.length
       @worksheet.save
-      puts "#{total} records checked. #{updated} updated."
+      puts "#{total} records checked. #{updated} updated.".colorize(:green)
     end
   end
 end
