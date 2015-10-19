@@ -1,5 +1,5 @@
 source 'https://rubygems.org'
-gem 'google-api-client', '0.9.pre3', require: 'google/apis/drive_v2'
+gem 'google-api-client'#, '0.9.pre3', require: 'google/api_client'
 gem 'google_drive'
 # gem 'poltergeist'
 gem 'capybara'
