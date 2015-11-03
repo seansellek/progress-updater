@@ -16,7 +16,7 @@ module ProgressScraper
       Launchy.open(auth_uri)
 
       print 'Paste the code from the auth response page: '.colorize(:blue)
-      auth_client.code = gets
+      auth_client.code = $stdin.gets
       auth_client.fetch_access_token!
       access_token = auth_client.access_token
 

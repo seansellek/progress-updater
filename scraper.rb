@@ -2,23 +2,25 @@ module ProgressScraper
   class Scraper
     include Capybara::DSL
 
-    def initialize cohort
+    def initialize(opts = {})
       configure_capybara
-      sign_in
-      @cohort = get_cohort
+      sign_in(opts["username"], opts["password"])
+      @cohort = opts["cohort_id"] || request_input("Cohort ID")
       @week_ids = week_ids
       @progress = {}
     end
 
-    def sign_in
-      print "Goodmeasure Username: ".colorize(:blue)
-      username = gets.chomp
-      print "Goodmeasure Password: ".colorize(:blue)
-      password = gets.chomp
+    def sign_in(username = nil, password = nil)
+      username ||= request_input("Goodmeasure Username")
+      password ||= request_input("Goodmeasure Password")
       visit "http://learn.wyncode.co/login"
       fill_in 'Username', with: username
       fill_in 'Password', with: password
       click_button 'Sign In'
+      verify_sign_in
+    end
+
+    def verify_sign_in
       if has_content? 'Invalid'
         puts "Invalid credentials! Try Again.".colorize(:red)
         sign_in
@@ -27,9 +29,9 @@ module ProgressScraper
       end
     end
 
-    def get_cohort
-      print "Enter Cohort ID: ".colorize(:blue)
-      gets.chomp.to_i
+    def request_input(item_name)
+      print "Enter #{item_name}: ".colorize(:blue)
+      $stdin.gets.chomp.to_i
     end
 
     # Returns week id's for each week in the course
@@ -40,16 +42,16 @@ module ProgressScraper
 
     def analyze
       @week_ids.each_with_index do |week_id, week|
-        puts "Retrieving Week #{week.to_s} Results".colorize(:yellow)
+        puts "Retrieving Week #{week} Results".colorize(:yellow)
         analyze_week(week_id, week)
       end
-      return self
+      self
     end
 
     def analyze_week(week_id, week)
       visit "http://learn.wyncode.co/cohorts/#{@cohort}/analyze?course=#{week_id}"
       @progress[week] = retrieve_results
-      return self
+      self
     end
 
     def retrieve_results
