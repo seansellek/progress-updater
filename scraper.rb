@@ -1,31 +1,32 @@
 module ProgressScraper
   class Scraper
-    include Capybara::DSL
 
     def initialize(opts = {})
-      configure_capybara
+      opts ||= {}
+      configure_mechanize
       sign_in(opts["username"], opts["password"])
       @cohort = opts["cohort_id"] || request_input("Cohort ID")
       @week_ids = week_ids
       @progress = {}
+      analyze
     end
 
     def sign_in(username = nil, password = nil)
       username ||= request_input("Goodmeasure Username")
       password ||= request_input("Goodmeasure Password")
-      visit "http://learn.wyncode.co/login"
-      fill_in 'Username', with: username
-      fill_in 'Password', with: password
-      click_button 'Sign In'
+      form = @agent.get("http://learn.wyncode.co/login").form
+      form.username = username
+      form.login_password = password
+      @page = @agent.submit(form, form.buttons.first)
       verify_sign_in
     end
 
     def verify_sign_in
-      if has_content? 'Invalid'
+      if @page.search(".error").empty?
+        puts "Successfully Signed in to Goodmeasure.".colorize(:yellow)
+      else
         puts "Invalid credentials! Try Again.".colorize(:red)
         sign_in
-      else
-        puts "Successfully Signed in to Goodmeasure.".colorize(:yellow)
       end
     end
 
@@ -36,8 +37,10 @@ module ProgressScraper
 
     # Returns week id's for each week in the course
     def week_ids
-      visit "http://learn.wyncode.co/cohorts/#{@cohort}/analyze"
-      find('#select_course').all('option').collect(&:value).map(&:to_i)
+      @page = @agent.get("http://learn.wyncode.co/cohorts/#{@cohort}/analyze")
+      @page.search("#select_course option").collect do |option|
+        option.attributes["value"].value.to_i
+      end
     end
 
     def analyze
@@ -49,32 +52,27 @@ module ProgressScraper
     end
 
     def analyze_week(week_id, week)
-      visit "http://learn.wyncode.co/cohorts/#{@cohort}/analyze?course=#{week_id}"
+      @page = @agent.get("http://learn.wyncode.co/cohorts/#{@cohort}/analyze?course=#{week_id}")
       @progress[week] = retrieve_results
       self
     end
 
     def retrieve_results
-      results = {}
-      all(:xpath, ".//*[@id='content']/div[1]/*[@class='student']").map do |student_node|
-        name = student_node.find('.student-name').text
-        progress = student_node.find('.progress .progress-percent').text.to_i
-        results[name] = progress
+      week_results = {}
+      @page.search(".//*[@id='content']/div[1]/*[@class='student']").each do |student_node|
+        name = student_node.at_css('.student-name').text
+        progress = student_node.at_css('.progress .progress-percent').text.to_i
+        week_results[name] = progress
       end
-      results
+      week_results
     end
 
     def results
       CohortProgress.new(@progress)
     end
 
-    def configure_capybara
-      Capybara.default_driver = :webkit
-      # Capybara.javascript_driver = :poltergeist
-      Capybara::Webkit.configure do |config|
-        config.block_unknown_urls
-        config.allow_url("learn.wyncode.co")
-      end
+    def configure_mechanize
+      @agent = Mechanize.new
     end
   end
 end

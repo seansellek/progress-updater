@@ -1,5 +1,4 @@
-require 'capybara'
-require 'capybara-webkit'
+require 'mechanize'
 require 'json'
 require 'pry-byebug'
 require 'google/api_client'
@@ -16,7 +15,7 @@ require './spreadsheet_importer.rb'
 opts = JSON.parse(File.read("./gm_secrets.json")) if ARGV[0] == "-d"
 
 scraper = ProgressScraper::Scraper.new(opts)
-results = scraper.analyze.results
+results = scraper.results
 
 drive = ProgressScraper::GDrive.new
 spreadsheet_id = opts["spreadsheet_id"]

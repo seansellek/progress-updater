@@ -52,6 +52,7 @@ module ProgressScraper
     def check_cell(student, week)
       week_results = @data[week.number]
       return unless week_results
+      binding.pry unless week_results[student.name]
       progress = week_results[student.name] / 100.0
       past_progress = @worksheet[student.row, week.column].to_f / 100
       return if past_progress == progress
